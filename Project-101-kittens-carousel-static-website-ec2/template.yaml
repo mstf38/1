@@ -43,9 +43,9 @@ Resources:
             unzip master.zip
             cd my-repo-master/
             cd Project-101-kittens-carousel-static-website-ec2/
-            cd static-web/
-            cd static/
             cp -r cat* /var/www/html
             cp -r index.html /var/www/html
+            rm -rf master.zip 
+            rm -rf my-repo-master/
             systemctl enable httpd
             systemctl start httpd
