@@ -1,39 +1,51 @@
-Recourses:
-  MyInstance:
+---
+Resources:
+  80and22:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access on ports 80 and 22
+      GroupName: 80and22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: 80and22
+      VpcId: vpc-0b5cbfb889cc570d1
+
+  EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      AvailibilityZone: us-east-1a
-      ImageId: ami-a4c7edb2
       InstanceType: t2.micro
-      SecurityGroups:
-        - !Ref SSHSecurityGroup
-        - !Ref ServerSecurityGroup
-
-MyEIP:
-  Type: AWS::EC2::EIP
-  Properties:
-    InstanceId: !Ref MyInstance
-
-SSHSecurityGroup:
-  Type: AWS::EC2::SecurityGroup
-  Properties:
-    GroupDescription: Enable SSH access via port 22
-    SecurityGroupIngress:
-      - CidrIp: 0.0.0.0/0
-        FromPort: 22
-        IpProtocol: tcp
-        ToPort: 22
-
-ServerSecurityGroup:
-  Type: AWS::EC2::SecurityGroup
-  Properties:
-    GroupDescription: Allow connections from specified CIDR ranges
-    SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: 192.168.1.1/32
+      SubnetId: subnet-057b8c17d294012bb
+      SecurityGroupIds: 
+        - !Ref 80and22
+      KeyName: FirstKey
+      ImageId: ami-0022f774911c1d690
+      Tags:
+        - Key: Name
+          Value: Webserver
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            sudo su
+            yum update -y
+            yum install -y httpd
+            cd /var/www/html
+            wget https://github.com/mstf38/my-repo/archive/master.zip
+            unzip master.zip
+            cd my-repo-master/
+            cd Project-101-kittens-carousel-static-website-ec2/
+            cd static-web/
+            cd static/
+            cp -r cat* /var/www/html
+            cp -r index.html /var/www/html
+            systemctl enable httpd
+            systemctl start httpd
